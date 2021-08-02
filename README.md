@@ -1,7 +1,7 @@
 
 
 
-SETUP:
+### SETUP:
 
 Data was saved in a subfolder of the local home directory as 6 seperate txt files. The entire folder was moved to HDFS with the following command:
 hdfs dfs -cp p1/ /user/devin
@@ -9,11 +9,15 @@ hdfs dfs -cp p1/ /user/devin
 The data provided fell into two categories: Branch data, and Consumer data. Each category had 3 associated .txt files.
 
 A table was prepared to recieve the branch data with the following command in Hive:
+
 CREATE TABLE branch (product STRING, branch STRING) row format delimited fields terminated by ',' stored as textfile;
 
 That table was populated with these commands, which collected all 3 branch .txt files into one table:
+
 LOAD DATA INPATH '/user/devin/p1/Bev_BranchA.txt' INTO TABLE branch;
+
 LOAD DATA INPATH '/user/devin/p1/Bev_BranchB.txt' INTO TABLE branch;
+
 LOAD DATA INPATH '/user/devin/p1/Bev_BranchC.txt' INTO TABLE branch;
 
 Another table was prepared to recieve the consumer data with the following command:
@@ -26,8 +30,8 @@ LOAD DATA INPATH '/user/devin/p1/Bev_ConscountC.txt' INTO TABLE consumers;
 
 Once the data was loaded into the tables, it was easy to query. Note that the decision to collect the data into two tables, rather than a separate table for each .txt file, was made to make querying data simpler. The ability to do this is one of the advantages of hive.
 
-Problem Scenario 1
-What is the total number of consumers for Branch1?
+###Problem Scenario 1
+####What is the total number of consumers for Branch1?
 
 SELECT SUM(c.consumers) FROM branch b
 LEFT JOIN consumers c
@@ -36,7 +40,7 @@ WHERE b.branch = "Branch1";
 
 RETURNS 1115974
 
-What is the number of consumers for the Branch2?
+####What is the number of consumers for the Branch2?
 
 SELECT SUM(c.consumers) FROM branch b
 LEFT JOIN consumers c
@@ -46,8 +50,8 @@ WHERE b.branch = "Branch2";
 RETURNS 5099141
 
 
-Problem Scenario 2
-What is the most consumed beverage on Branch1
+###Problem Scenario 2
+####What is the most consumed beverage on Branch1
 
 SELECT c.product, SUM(c.consumers) total FROM branch b
 LEFT JOIN consumers c
@@ -59,7 +63,7 @@ LIMIT 1;
 
 RETURNS  Special_cappuccino  | 108163
 
-What is the least consumed beverage on Branch2
+####What is the least consumed beverage on Branch2
 
 SELECT c.product, SUM(c.consumers) total FROM branch b
 LEFT JOIN consumers c
@@ -71,7 +75,7 @@ LIMIT 1;
 
 RETURNS Cold_MOCHA  | 47524
 
-What is the Average consumed beverage of  Branch2
+####What is the Average consumed beverage of  Branch2
 
 WITH t1 AS (SELECT sum(c.consumers) tot FROM branch b
 LEFT JOIN consumers c
@@ -83,8 +87,8 @@ SELECT AVG(t1.tot) FROM t1;
 RETURNS 99983.1568627451
 
 
-Problem Scenario 3
-What are the beverages available on Branch10, Branch8, and Branch1?
+###Problem Scenario 3
+####What are the beverages available on Branch10, Branch8, and Branch1?
 
 SELECT DISTINCT(product) FROM branch
 WHERE branch = "Branch10" OR branch = "Branch8" OR branch = "Branch1";
@@ -134,7 +138,7 @@ WHERE branch = "Branch10" OR branch = "Branch8" OR branch = "Branch1";
 | Triple_cappuccino   |
 
 
-what are the comman beverages available in Branch4,Branch7?
+####what are the comman beverages available in Branch4,Branch7?
 
 WITH b4 AS (SELECT product FROM branch
 WHERE branch = "Branch4"),
@@ -197,10 +201,10 @@ ON b4.product = b7.product;
 | Triple_cappuccino   |
 +---------------------+
 
-Problem Scenario 4
-create a partition,index,View for the scenario3.
+###Problem Scenario 4
+####create a partition,index,View for the scenario3.
 
-VIEW =================
+#####VIEW =================
 
 CREATE VIEW view1 AS
 SELECT DISTINCT(b4.product) product FROM (SELECT product FROM branch
@@ -210,7 +214,7 @@ INNER JOIN
 WHERE branch = "Branch7") AS b7
 ON b4.product = b7.product;
 
-PARTITION ==============
+#####PARTITION ==============
 
 CREATE TABLE branch (product STRING) PARTITIONED BY (branch STRING) row format delimited fields terminated by ',' stored as textfile;
 LOAD DATA INPATH '/user/devin/p1/Bev_BranchA.txt' INTO TABLE branch;
@@ -218,8 +222,8 @@ LOAD DATA INPATH '/user/devin/p1/Bev_BranchB.txt' INTO TABLE branch;
 LOAD DATA INPATH '/user/devin/p1/Bev_BranchC.txt' INTO TABLE branch;
 
 
-Problem Scenario 5
-Alter the table properties to add "note","comment"
+###Problem Scenario 5
+####Alter the table properties to add "note","comment"
 ALTER TABLE branch SET TBLPROPERTIES("note" = "comment");
 SHOW TBLPROPERTIES branch;
 +------------------------+-------------+
@@ -236,8 +240,8 @@ SHOW TBLPROPERTIES branch;
 | transient_lastDdlTime  | 1627419197  |
 +------------------------+-------------+
 
-Problem Scenario 6
-Remove the row 5 from the output of any scenario
+###Problem Scenario 6
+####Remove the row 5 from the output of any scenario
 SCENARIO 1 - MOST PURCHASED BRANCH 1 BEVERAGE - 5th MOST PURCHASED.
 
 WITH t1 AS (SELECT ROW_NUMBER() OVER (ORDER BY b.product) as row_number, b.product, SUM(c.consumers)  FROM branch b
@@ -251,15 +255,6 @@ SELECT * FROM t1 WHERE t1.row_number = 5;
 +----------------+---------------+---------+
 | 5              | ICY_Espresso  | 50820   |
 +----------------+---------------+---------+
-
-
-
-2)How to present the project
-Use the PPT presentation with screenshot of output attached along with problem senario described.
-
-Also add spark connection with hive to run these quaries in scala
-
-Add atleast two intresting findings of yourself in this project.
 
 
 
